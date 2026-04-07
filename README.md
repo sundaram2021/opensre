@@ -26,12 +26,6 @@
   </strong>
 </p>
 
-<p>
-  <a href="https://join.slack.com/share/enQtMTA4NTIyNjEwOTczNDgtODMzN2QyMGZhMjljZDJhMzAwNDg1YTc4ZTA0MjBkY2U5YTFhNTJjZmIyM2ViNGY1Y2I5MGMyMDRmOGFhMjM2Nw">
-    <img src="https://img.shields.io/badge/➜_Click_To_Join_Our_Slack-white?style=for-the-badge&logo=slack&logoColor=4A154B" alt="Join Slack">
-  </a>
-</p>
-
 </div>
 
 ---
