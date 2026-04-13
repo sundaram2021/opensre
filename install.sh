@@ -172,12 +172,14 @@ verify_checksum() {
   checksum_name="${checksum_path##*/}"
 
   if command -v sha256sum >/dev/null 2>&1; then
-    (cd "$archive_dir" && sha256sum -c "$checksum_name") >/dev/null
+    (cd "$archive_dir" && sha256sum -c "$checksum_name") >/dev/null \
+      || die "Checksum verification failed for '${archive_path##*/}'."
     return
   fi
 
   if command -v shasum >/dev/null 2>&1; then
-    (cd "$archive_dir" && shasum -a 256 -c "$checksum_name") >/dev/null
+    (cd "$archive_dir" && shasum -a 256 -c "$checksum_name") >/dev/null \
+      || die "Checksum verification failed for '${archive_path##*/}'."
     return
   fi
 
@@ -204,6 +206,40 @@ install_binary() {
 
   cp "$source_path" "$destination_path"
   chmod 0755 "$destination_path" 2>/dev/null || true
+}
+
+get_binary_path_from_archive() {
+  local extraction_root="$1"
+  local binary_name="$2"
+  local direct_binary_path
+  local binary_candidates=()
+  local binary_locations
+
+  direct_binary_path="${extraction_root}/${binary_name}"
+  if [ -f "$direct_binary_path" ]; then
+    printf '%s\n' "$direct_binary_path"
+    return
+  fi
+
+  need_cmd find
+
+  while IFS= read -r candidate; do
+    binary_candidates+=("$candidate")
+  done < <(find "$extraction_root" -type f -name "$binary_name")
+
+  case "${#binary_candidates[@]}" in
+    1)
+      printf '%s\n' "${binary_candidates[0]}"
+      ;;
+    0)
+      die "Archive '${archive}' did not contain '${binary_name}'."
+      ;;
+    *)
+      binary_locations="$(printf '%s, ' "${binary_candidates[@]}")"
+      binary_locations="${binary_locations%, }"
+      die "Found multiple '${binary_name}' files after extraction: ${binary_locations}"
+      ;;
+  esac
 }
 
 verify_binary_version() {
@@ -321,9 +357,7 @@ fi
 mkdir -p "$INSTALL_DIR"
 extract_archive "$archive_path" "$tmp_dir"
 
-binary_path="${tmp_dir}/${BIN_NAME}"
-[ -f "$binary_path" ] || die "Archive '${archive}' did not contain '${BIN_NAME}'."
-
+binary_path="$(get_binary_path_from_archive "$tmp_dir" "$BIN_NAME")"
 verify_binary_version "$binary_path" "$version"
 install_binary "$binary_path" "${INSTALL_DIR}/${BIN_NAME}"
 
