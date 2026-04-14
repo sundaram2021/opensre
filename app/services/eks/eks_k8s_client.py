@@ -11,7 +11,7 @@ from typing import Any
 import boto3
 import botocore.auth
 import botocore.awsrequest
-from botocore.credentials import Credentials as BotoCreds
+import botocore.credentials
 from kubernetes import client as k8s_client
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def _generate_eks_token(cluster_name: str, assumed_creds: dict[str, Any], region
     x-k8s-aws-id header included in the canonical request before signing.
     This matches exactly what aws-iam-authenticator and `aws eks get-token` do.
     """
-    creds = BotoCreds(
+    creds = botocore.credentials.Credentials(
         access_key=assumed_creds["AccessKeyId"],
         secret_key=assumed_creds["SecretAccessKey"],
         token=assumed_creds["SessionToken"],

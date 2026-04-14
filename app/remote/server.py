@@ -23,7 +23,6 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -90,7 +89,7 @@ def _check_api_key(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
-@asynccontextmanager
+@contextlib.asynccontextmanager
 async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
     INVESTIGATIONS_DIR.mkdir(parents=True, exist_ok=True)
     _refresh_instance_metadata()
