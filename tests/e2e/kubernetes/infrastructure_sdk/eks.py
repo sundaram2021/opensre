@@ -413,7 +413,7 @@ def _enable_api_auth_mode() -> None:
         _wait_for_cluster("ACTIVE", timeout=120)
     except ClientError:
         # Already in the desired mode; update is a no-op
-        pass
+        return
 
 
 def _wait_for_auth_mode(expected: str, timeout: int = 180) -> bool:
@@ -428,7 +428,8 @@ def _wait_for_auth_mode(expected: str, timeout: int = 180) -> bool:
                 return True
         except ClientError:
             # Cluster may not be reachable yet during creation; retry
-            pass
+            time.sleep(5)
+            continue
         time.sleep(5)
     return False
 
