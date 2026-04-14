@@ -5,7 +5,9 @@ Programmatic equivalent of `aws eks get-token` — no kubectl binary required.
 
 import base64
 import logging
+import os
 import tempfile
+import weakref
 from typing import Any
 
 import boto3
@@ -64,6 +66,13 @@ def _generate_eks_token(cluster_name: str, assumed_creds: dict[str, Any], region
     return token
 
 
+def _delete_temp_cert(path: str) -> None:
+    try:
+        os.unlink(path)
+    except FileNotFoundError:
+        return
+
+
 def build_k8s_clients(
     cluster_name: str,
     role_arn: str,
@@ -110,5 +119,10 @@ def build_k8s_clients(
     configuration.api_key = {"authorization": f"Bearer {token}"}
 
     logger.info("[eks] K8s client built — host=%s", endpoint)
-    api_client = k8s_client.ApiClient(configuration)
+    try:
+        api_client = k8s_client.ApiClient(configuration)
+    except Exception:
+        _delete_temp_cert(ca_path)
+        raise
+    api_client._ca_cert_cleanup = weakref.finalize(api_client, _delete_temp_cert, ca_path)
     return k8s_client.CoreV1Api(api_client), k8s_client.AppsV1Api(api_client)
