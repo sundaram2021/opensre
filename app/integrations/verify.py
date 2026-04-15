@@ -11,9 +11,6 @@ import requests
 from app.auth.jwt_auth import extract_org_id_from_jwt
 from app.config import get_tracer_base_url
 from app.integrations.catalog import (
-    load_env_integrations,
-)
-from app.integrations.catalog import (
     resolve_effective_integrations as _resolve_effective_integrations,
 )
 from app.integrations.github_mcp import build_github_mcp_config, validate_github_mcp_config
@@ -34,7 +31,6 @@ from app.integrations.mysql import build_mysql_config, validate_mysql_config
 from app.integrations.openclaw import build_openclaw_config, validate_openclaw_config
 from app.integrations.postgresql import build_postgresql_config, validate_postgresql_config
 from app.integrations.sentry import build_sentry_config, validate_sentry_config
-from app.integrations.store import load_integrations
 from app.services.coralogix import CoralogixClient
 from app.services.datadog.client import DatadogClient, DatadogConfig
 from app.services.honeycomb import HoneycombClient
@@ -86,10 +82,7 @@ def _result(
 
 def resolve_effective_integrations() -> dict[str, dict[str, Any]]:
     """Resolve effective local integrations from ~/.tracer and environment variables."""
-    return _resolve_effective_integrations(
-        store_integrations=load_integrations(),
-        env_integrations=load_env_integrations(),
-    )
+    return _resolve_effective_integrations()
 
 
 def _verify_grafana(source: str, config: dict[str, Any]) -> dict[str, str]:
